@@ -19,6 +19,18 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
+    @GetMapping("/secure/user/book")
+    public Boolean reviewBookByUser(@AuthenticationPrincipal Jwt jwt,
+                                    @RequestParam Long bookId) throws Exception {
+        String userEmail = jwt.getClaim("email");
+
+        if(userEmail == null) {
+            throw new Exception("User email is missing");
+        }
+
+        return reviewService.userReviewListed(userEmail, bookId);
+    }
+
     @PostMapping("/secure")
     public void postReview(@AuthenticationPrincipal Jwt jwt,
                            @RequestBody ReviewRequest reviewRequest) throws Exception {
