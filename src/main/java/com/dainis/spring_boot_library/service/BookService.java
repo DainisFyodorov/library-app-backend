@@ -81,7 +81,7 @@ public class BookService {
         List<Long> bookIdList = new ArrayList<>();
 
         for(Checkout i : checkoutList) {
-            bookIdList.add(i.getId());
+            bookIdList.add(i.getBookId());
         }
 
         List<Book> books = bookRepository.findBooksByBookIds(bookIdList);
