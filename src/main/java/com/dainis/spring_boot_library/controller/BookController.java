@@ -27,7 +27,6 @@ public class BookController {
     public List<ShelfCurrentLoansResponse> currentLoans(@AuthenticationPrincipal Jwt jwt) throws Exception {
         String userEmail = jwt.getClaim("email");
         return bookService.currentLoans(userEmail);
-
     }
 
     @GetMapping("/secure/currentloans/count")
