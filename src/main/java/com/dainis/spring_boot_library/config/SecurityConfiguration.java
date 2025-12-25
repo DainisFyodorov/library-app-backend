@@ -20,7 +20,8 @@ public class SecurityConfiguration {
         // Protect endpoints at /api/<type>/secure
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/books/secure/**",
-                                "/api/reviews/secure/**")
+                                "/api/reviews/secure/**",
+                                "/api/messages/secure/**")
                 .authenticated()
                 .anyRequest().permitAll()
         );
