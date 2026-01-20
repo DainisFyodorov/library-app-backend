@@ -30,6 +30,18 @@ public class AdminController {
         adminService.increaseBookQuantity(bookId);
     }
 
+    @PutMapping("/secure/decrease/book/quantity")
+    public void decreaseBookQuantity(@AuthenticationPrincipal Jwt jwt,
+                                     @RequestParam Long bookId) throws Exception {
+        String userType = jwt.getClaim("userType");
+
+        if(userType == null || !userType.equals("admin")) {
+            throw new Exception("Administration page only");
+        }
+
+        adminService.decreaseBookQuantity(bookId);
+    }
+
     @PostMapping("/secure/add/book")
     public void postBook(@AuthenticationPrincipal Jwt jwt,
                          @RequestBody AddBookRequest addBookRequest) throws Exception {
