@@ -7,6 +7,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @Transactional
 public class AdminService {
@@ -16,6 +18,20 @@ public class AdminService {
     @Autowired
     public AdminService(BookRepository bookRepository) {
         this.bookRepository = bookRepository;
+    }
+
+    public void increaseBookQuantity(Long bookId) throws Exception {
+
+        Optional<Book> book = bookRepository.findById(bookId);
+
+        if(book.isEmpty()) {
+            throw new Exception("Book not found");
+        }
+
+        book.get().setCopiesAvailable(book.get().getCopiesAvailable() + 1);
+        book.get().setCopies(book.get().getCopies() + 1);
+
+        bookRepository.save(book.get());
     }
 
     public void postBook(AddBookRequest addBookRequest) {
