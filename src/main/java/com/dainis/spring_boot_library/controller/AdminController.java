@@ -53,4 +53,16 @@ public class AdminController {
 
         adminService.postBook(addBookRequest);
     }
+
+    @DeleteMapping("/secure/delete/book")
+    public void deleteBook(@AuthenticationPrincipal Jwt jwt,
+                           @RequestParam Long bookId) throws Exception {
+        String userType = jwt.getClaim("userType");
+
+        if(userType == null || !userType.equals("admin")) {
+            throw new Exception("Administration page only");
+        }
+
+        adminService.deleteBook(bookId);
+    }
 }
