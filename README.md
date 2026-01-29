@@ -16,6 +16,7 @@ The backend is implemented using Java and Spring Boot and exposes REST APIs cons
 - MySQL
 - Maven
 - Auth0 (Authentication & Authorization)
+- Stripe (For payment processing)
 
 ## Features
 - CRUD operations
