@@ -70,6 +70,20 @@ class BookServiceTest {
     }
 
     @Test
+    @DisplayName("Checkout book which is not found")
+    void testCheckoutBookNotFound() {
+        Long bookId = 999L;
+        String userEmail = "test@email.com";
+
+        when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(Exception.class, () -> bookService.checkoutBook(userEmail, bookId));
+
+        assertTrue(exception.getMessage().contains("Book doesn't exist"));
+        verify(checkoutRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("Checkout book if no copies are available")
     void testCheckoutBookNoCopiesAvailable() {
         String userEmail = "test@example.com";
