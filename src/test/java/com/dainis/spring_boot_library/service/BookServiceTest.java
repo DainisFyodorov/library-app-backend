@@ -5,6 +5,7 @@ import com.dainis.spring_boot_library.dao.CheckoutRepository;
 import com.dainis.spring_boot_library.dao.HistoryRepository;
 import com.dainis.spring_boot_library.dao.PaymentRepository;
 import com.dainis.spring_boot_library.entity.Book;
+import com.dainis.spring_boot_library.entity.Checkout;
 import com.dainis.spring_boot_library.entity.Payment;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -103,5 +106,26 @@ class BookServiceTest {
         when(checkoutRepository.findBooksByUserEmail(userEmail)).thenReturn(Collections.emptyList());
 
         assertThrows(Exception.class, () -> bookService.checkoutBook(userEmail, bookId));
+    }
+
+    @Test
+    @DisplayName("Checkout book which is already checked out by user")
+    void testCheckoutBookWhichIsAlreadyCheckedOut() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        Book book = new Book();
+        book.setId(bookId);
+        book.setCopiesAvailable(5);
+
+        Checkout checkout = new Checkout();
+
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
+        when(checkoutRepository.findByUserEmailAndBookId(userEmail, bookId)).thenReturn(checkout);
+
+        assertThrows(Exception.class, () -> bookService.checkoutBook(userEmail, bookId));
+
+        verify(bookRepository, never()).save(any());
+        verify(checkoutRepository, never()).save(any());
     }
 }
