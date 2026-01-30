@@ -84,4 +84,24 @@ class BookServiceTest {
         assertTrue(exception.getMessage().contains("Book doesn't exist or already checked out"));
         verify(bookRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("Checkout book when user has outstanding fees")
+    void testCheckoutBookHavingOutstandingFees() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        Book book = new Book();
+        book.setCopiesAvailable(5);
+
+        Payment payment = new Payment();
+        payment.setAmount(10.50);
+
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
+        when(paymentRepository.findByUserEmail(userEmail)).thenReturn(payment);
+        when(checkoutRepository.findByUserEmailAndBookId(userEmail, bookId)).thenReturn(null);
+        when(checkoutRepository.findBooksByUserEmail(userEmail)).thenReturn(Collections.emptyList());
+
+        assertThrows(Exception.class, () -> bookService.checkoutBook(userEmail, bookId));
+    }
 }
