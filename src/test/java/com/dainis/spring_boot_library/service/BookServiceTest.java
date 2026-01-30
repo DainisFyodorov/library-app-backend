@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.nio.LongBuffer;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
@@ -141,6 +142,35 @@ class BookServiceTest {
         when(checkoutRepository.findByUserEmailAndBookId(userEmail, bookId)).thenReturn(checkout);
 
         assertThrows(Exception.class, () -> bookService.checkoutBook(userEmail, bookId));
+
+        verify(bookRepository, never()).save(any());
+        verify(checkoutRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Checkout book when having overdue books")
+    void testCheckoutWithLateBook() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        Book book = new Book();
+        book.setId(bookId);
+        book.setCopiesAvailable(5);
+
+        Checkout overdueCheckout = new Checkout();
+        overdueCheckout.setReturnDate(LocalDate.now().minusDays(2).toString());
+
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
+        when(checkoutRepository.findBooksByUserEmail(userEmail)).thenReturn(List.of(overdueCheckout));
+
+        Payment payment = new Payment();
+        payment.setAmount(0.00);
+
+        when(paymentRepository.findByUserEmail(userEmail)).thenReturn(payment);
+
+        Exception exception = assertThrows(Exception.class, () -> bookService.checkoutBook(userEmail, bookId));
+
+        assertEquals("Outstanding fees", exception.getMessage());
 
         verify(bookRepository, never()).save(any());
         verify(checkoutRepository, never()).save(any());
