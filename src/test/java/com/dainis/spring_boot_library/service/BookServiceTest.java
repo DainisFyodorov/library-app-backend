@@ -106,6 +106,9 @@ class BookServiceTest {
         when(checkoutRepository.findBooksByUserEmail(userEmail)).thenReturn(Collections.emptyList());
 
         assertThrows(Exception.class, () -> bookService.checkoutBook(userEmail, bookId));
+
+        verify(bookRepository, never()).save(any());
+        verify(checkoutRepository, never()).save(any());
     }
 
     @Test
