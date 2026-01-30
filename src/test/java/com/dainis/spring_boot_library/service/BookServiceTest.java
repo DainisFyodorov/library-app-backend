@@ -16,8 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,5 +64,24 @@ class BookServiceTest {
 
         verify(bookRepository, times(1)).save(any(Book.class));
         verify(checkoutRepository, times(1)).save(any());
+    }
+
+    @Test
+    @DisplayName("Checkout book if no copies are available")
+    void testCheckoutBookNoCopiesAvailable() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        Book book = new Book();
+        book.setCopiesAvailable(0);
+
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            bookService.checkoutBook(userEmail, bookId);
+        });
+
+        assertTrue(exception.getMessage().contains("Book doesn't exist or already checked out"));
+        verify(bookRepository, never()).save(any());
     }
 }
