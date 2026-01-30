@@ -175,4 +175,27 @@ class BookServiceTest {
         verify(bookRepository, never()).save(any());
         verify(checkoutRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("Create new payment record if not found during checkout")
+    void testCheckoutBookPaymentNotFound() throws Exception {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        Book book = new Book();
+        book.setId(bookId);
+        book.setCopiesAvailable(5);
+
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
+        when(paymentRepository.findByUserEmail(userEmail)).thenReturn(null);
+        when(checkoutRepository.findBooksByUserEmail(userEmail)).thenReturn(Collections.emptyList());
+
+        bookService.checkoutBook(userEmail, bookId);
+
+        verify(paymentRepository, times(1)).save(argThat(payment ->
+                payment.getUserEmail().equals(userEmail) && payment.getAmount() == 0.00
+        ));
+
+        verify(checkoutRepository, times(1)).save(any(Checkout.class));
+    }
 }
