@@ -273,7 +273,17 @@ class BookServiceTest {
         assertTrue(result.getFirst().getDaysLeft() < 0, "Days left should be negative for overdue books");
     }
 
-    // Should return empty array list when checkoutRepository returns an empty list
+    void shouldReturnEmptyArrayWhenCheckoutIsEmpty() throws Exception {
+        String userEmail = "test@example.com";
+
+        when(checkoutRepository.findBooksByUserEmail(userEmail)).thenReturn(Collections.emptyList());
+        when(bookRepository.findBooksByBookIds(Collections.emptyList())).thenReturn(Collections.emptyList());
+
+        List<ShelfCurrentLoansResponse> result = bookService.currentLoans(userEmail);
+
+        assertNotNull(result, "Should not be null");
+        assertTrue(result.isEmpty(), "List should be empty");
+    }
 
     //endregion
 }
