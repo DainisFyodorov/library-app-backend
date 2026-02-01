@@ -7,6 +7,7 @@ import com.dainis.spring_boot_library.dao.PaymentRepository;
 import com.dainis.spring_boot_library.entity.Book;
 import com.dainis.spring_boot_library.entity.Checkout;
 import com.dainis.spring_boot_library.entity.Payment;
+import com.dainis.spring_boot_library.responsemodels.ShelfCurrentLoansResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +42,7 @@ class BookServiceTest {
     @InjectMocks
     private BookService bookService;
 
+    //region checkoutBook tests
     @Test
     @DisplayName("Successfully checkout the book without fees and book is available")
     void testCheckoutBookSuccess() throws Exception {
@@ -198,7 +200,9 @@ class BookServiceTest {
 
         verify(checkoutRepository, times(1)).save(any(Checkout.class));
     }
+    //endregion
 
+    //region checkoutBookByUser tests
     @DisplayName("Should return true if book is checked out")
     @Test
     void shouldReturnTrueIfBookIsCheckedOut() {
@@ -220,4 +224,38 @@ class BookServiceTest {
         assertFalse(bookService.checkoutBookByUser(userEmail, bookId));
         verify(checkoutRepository).findByUserEmailAndBookId(userEmail, bookId);
     }
+    //endregion
+
+    //region currentLoans tests
+
+    @DisplayName("Should correctly calculate days left for loaned books")
+    @Test
+    void shouldReturnLoansWithCorrectCalculatedDays() throws Exception {
+        String userEmail = "test@example.com";
+        String today = LocalDate.now().toString();
+        String tomorrow = LocalDate.now().plusDays(1).toString();
+
+        Checkout checkout = new Checkout();
+        checkout.setBookId(1L);
+        checkout.setReturnDate(tomorrow);
+
+        Book book = new Book();
+        book.setId(1L);
+        book.setTitle("Unit Test");
+
+        when(checkoutRepository.findBooksByUserEmail(userEmail)).thenReturn(List.of(checkout));
+        when(bookRepository.findBooksByBookIds(List.of(1L))).thenReturn(List.of(book));
+
+        List<ShelfCurrentLoansResponse> result = bookService.currentLoans(userEmail);
+
+        assertEquals(1, result.size());
+        assertEquals(1, result.getFirst().getDaysLeft());
+        assertEquals("Unit Test", result.getFirst().getBook().getTitle());
+    }
+
+    // Should return negative days when loan is overdue
+
+    // Should return empty array list when checkoutRepository returns an empty list
+
+    //endregion
 }
