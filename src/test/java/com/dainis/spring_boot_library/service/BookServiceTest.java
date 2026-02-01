@@ -232,7 +232,6 @@ class BookServiceTest {
     @Test
     void shouldReturnLoansWithCorrectCalculatedDays() throws Exception {
         String userEmail = "test@example.com";
-        String today = LocalDate.now().toString();
         String tomorrow = LocalDate.now().plusDays(1).toString();
 
         Checkout checkout = new Checkout();
@@ -253,7 +252,26 @@ class BookServiceTest {
         assertEquals("Unit Test", result.getFirst().getBook().getTitle());
     }
 
-    // Should return negative days when loan is overdue
+    @DisplayName("Should return negative days when loan is overdue")
+    @Test
+    void shouldReturnNegativeDaysWhenLoanIsOverdue() throws Exception {
+        String userEmail = "test@example.com";
+        String yesterday = LocalDate.now().minusDays(1).toString();
+
+        Checkout checkout = new Checkout();
+        checkout.setBookId(1L);
+        checkout.setReturnDate(yesterday);
+
+        Book book = new Book();
+        book.setId(1L);
+
+        when(checkoutRepository.findBooksByUserEmail(userEmail)).thenReturn(List.of(checkout));
+        when(bookRepository.findBooksByBookIds(List.of(1L))).thenReturn(List.of(book));
+
+        List<ShelfCurrentLoansResponse> result = bookService.currentLoans(userEmail);
+
+        assertTrue(result.getFirst().getDaysLeft() < 0, "Days left should be negative for overdue books");
+    }
 
     // Should return empty array list when checkoutRepository returns an empty list
 
