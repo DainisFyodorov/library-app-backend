@@ -273,6 +273,8 @@ class BookServiceTest {
         assertTrue(result.getFirst().getDaysLeft() < 0, "Days left should be negative for overdue books");
     }
 
+    @DisplayName("Should return an empty array when checkout is empty")
+    @Test
     void shouldReturnEmptyArrayWhenCheckoutIsEmpty() throws Exception {
         String userEmail = "test@example.com";
 
