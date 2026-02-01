@@ -198,4 +198,26 @@ class BookServiceTest {
 
         verify(checkoutRepository, times(1)).save(any(Checkout.class));
     }
+
+    @DisplayName("Should return true if book is checked out")
+    @Test
+    void shouldReturnTrueIfBookIsCheckedOut() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        when(checkoutRepository.findByUserEmailAndBookId(userEmail, bookId)).thenReturn(new Checkout());
+        assertTrue(bookService.checkoutBookByUser(userEmail, bookId));
+        verify(checkoutRepository).findByUserEmailAndBookId(userEmail, bookId);
+    }
+
+    @DisplayName("Should return false when book is not checked out")
+    @Test
+    void shouldReturnFalseWhenBookIsNotCheckedOut() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        when(checkoutRepository.findByUserEmailAndBookId(userEmail, bookId)).thenReturn(null);
+        assertFalse(bookService.checkoutBookByUser(userEmail, bookId));
+        verify(checkoutRepository).findByUserEmailAndBookId(userEmail, bookId);
+    }
 }
