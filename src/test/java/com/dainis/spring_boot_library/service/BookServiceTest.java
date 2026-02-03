@@ -288,4 +288,60 @@ class BookServiceTest {
     }
 
     //endregion
+
+    //region returnBook tests (TODO)
+
+    //endregion
+
+    //region renewLoan tests
+
+    @DisplayName("Successfully renew the loan")
+    @Test
+    void testRenewLoan() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        Checkout checkout = new Checkout();
+        checkout.setReturnDate(LocalDate.now().plusDays(1).toString());
+
+        when(checkoutRepository.findByUserEmailAndBookId(userEmail, bookId)).thenReturn(checkout);
+
+        assertDoesNotThrow(() -> bookService.renewLoan(userEmail, bookId));
+        assertEquals(LocalDate.now().plusDays(7).toString(), checkout.getReturnDate());
+
+        verify(checkoutRepository, times(1)).save(any());
+    }
+
+    @DisplayName("Renew the loan of book which is not checkout")
+    @Test
+    void testRenewLoanOfNotCheckedOutBook() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        when(checkoutRepository.findByUserEmailAndBookId(userEmail, bookId)).thenReturn(null);
+
+        Exception exception = assertThrows(Exception.class, () -> bookService.renewLoan(userEmail, bookId), "Should throw an exception");
+        assertTrue(exception.getMessage().contains("Book does not exist or not checked out by user"));
+
+        verify(checkoutRepository, never()).save(any());
+    }
+
+    @DisplayName("Renew the loan of book which is already delayed")
+    @Test
+    void testRenewLoanOfDelayedBook() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        Checkout checkout = new Checkout();
+        checkout.setReturnDate(LocalDate.now().minusDays(1).toString());
+
+        when(checkoutRepository.findByUserEmailAndBookId(userEmail, bookId)).thenReturn(checkout);
+
+        assertDoesNotThrow(() -> bookService.renewLoan(userEmail, bookId));
+        assertEquals(LocalDate.now().minusDays(1).toString(), checkout.getReturnDate());
+
+        verify(checkoutRepository, never()).save(any());
+    }
+
+    //endregion
 }
