@@ -6,6 +6,7 @@ import com.dainis.spring_boot_library.dao.HistoryRepository;
 import com.dainis.spring_boot_library.dao.PaymentRepository;
 import com.dainis.spring_boot_library.entity.Book;
 import com.dainis.spring_boot_library.entity.Checkout;
+import com.dainis.spring_boot_library.entity.History;
 import com.dainis.spring_boot_library.entity.Payment;
 import com.dainis.spring_boot_library.responsemodels.ShelfCurrentLoansResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -290,6 +291,125 @@ class BookServiceTest {
     //endregion
 
     //region returnBook tests (TODO)
+
+    @DisplayName("Successfully return the book")
+    @Test
+    void testReturnBook() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        Book book = new Book();
+        book.setTitle("Test Book");
+        book.setCopiesAvailable(1);
+
+        Checkout checkout = new Checkout();
+        checkout.setId(2L);
+        checkout.setReturnDate(LocalDate.now().plusDays(1).toString());
+
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
+        when(checkoutRepository.findByUserEmailAndBookId(userEmail, bookId)).thenReturn(checkout);
+
+        assertDoesNotThrow(() -> bookService.returnBook(userEmail, bookId));
+        assertEquals(2, book.getCopiesAvailable());
+
+        verify(bookRepository, times(1)).save(any());
+        verifyNoInteractions(paymentRepository);
+        verify(checkoutRepository, times(1)).deleteById(any());
+        verify(historyRepository, times(1)).save(any());
+    }
+
+    @DisplayName("Return late book")
+    @Test
+    void testReturnLateBook() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        Book book = new Book();
+        book.setTitle("Test Book");
+        book.setCopiesAvailable(1);
+
+        Checkout checkout = new Checkout();
+        checkout.setId(2L);
+        checkout.setReturnDate(LocalDate.now().minusDays(1).toString());
+
+        Payment payment = new Payment();
+        payment.setAmount(100.00);
+
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
+        when(checkoutRepository.findByUserEmailAndBookId(userEmail, bookId)).thenReturn(checkout);
+        when(paymentRepository.findByUserEmail(userEmail)).thenReturn(payment);
+
+        assertDoesNotThrow(() -> bookService.returnBook(userEmail, bookId));
+        assertEquals(2, book.getCopiesAvailable());
+        assertEquals(101.00, payment.getAmount(), 0.001);
+
+        verify(paymentRepository, times(1)).save(payment);
+        verify(bookRepository, times(1)).save(book);
+        verify(checkoutRepository, times(1)).deleteById(checkout.getId());
+        verify(historyRepository, times(1)).save(any());
+    }
+
+    @DisplayName("Return late book with no payment exists")
+    @Test
+    void testReturnLateBookWithoutExistingPayment() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        Book book = new Book();
+        book.setTitle("Test Book");
+        book.setCopiesAvailable(1);
+
+        Checkout checkout = new Checkout();
+        checkout.setId(2L);
+        checkout.setReturnDate(LocalDate.now().minusDays(1).toString());
+
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
+        when(checkoutRepository.findByUserEmailAndBookId(userEmail, bookId)).thenReturn(checkout);
+        when(paymentRepository.findByUserEmail(userEmail)).thenReturn(null);
+
+        Exception exception = assertThrows(Exception.class, () -> bookService.returnBook(userEmail, bookId));
+
+        assertTrue(exception.getMessage().contains("Payment doesn't exist"));
+        assertEquals(1, book.getCopiesAvailable());
+
+        verify(paymentRepository, never()).save(any());
+        verify(bookRepository, never()).save(book);
+        verify(checkoutRepository, never()).deleteById(checkout.getId());
+        verifyNoInteractions(historyRepository);
+    }
+
+    @DisplayName("Return book which does not exist")
+    @Test
+    void testReturnNonExistingBook() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(Exception.class, () -> bookService.returnBook(userEmail, bookId));
+
+        assertTrue(exception.getMessage().contains("Book doesn't exist or not checked out by user"));
+    }
+
+    @DisplayName("Return book which is not checked out")
+    @Test
+    void testReturnNotCheckedOutBook() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        Book book = new Book();
+        book.setCopiesAvailable(1);
+
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
+        when(checkoutRepository.findByUserEmailAndBookId(userEmail, bookId)).thenReturn(null);
+
+        Exception exception = assertThrows(Exception.class, () -> bookService.returnBook(userEmail, bookId));
+
+        assertEquals(1, book.getCopiesAvailable());
+        assertTrue(exception.getMessage().contains("Book doesn't exist or not checked out by user"));
+
+        verify(bookRepository, never()).save(book);
+    }
 
     //endregion
 
