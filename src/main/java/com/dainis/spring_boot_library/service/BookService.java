@@ -158,9 +158,6 @@ public class BookService {
             throw new Exception("Book doesn't exist or not checked out by user");
         }
 
-        book.get().setCopiesAvailable(book.get().getCopiesAvailable() + 1);
-        bookRepository.save(book.get());
-
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
         Date d1 = sdf.parse(validateCheckout.getReturnDate());
@@ -179,6 +176,9 @@ public class BookService {
             payment.setAmount(payment.getAmount() + (differenceInTime * -1));
             paymentRepository.save(payment);
         }
+
+        book.get().setCopiesAvailable(book.get().getCopiesAvailable() + 1);
+        bookRepository.save(book.get());
 
         checkoutRepository.deleteById(validateCheckout.getId());
 
