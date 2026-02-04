@@ -159,7 +159,6 @@ public class BookService {
         }
 
         book.get().setCopiesAvailable(book.get().getCopiesAvailable() + 1);
-
         bookRepository.save(book.get());
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
