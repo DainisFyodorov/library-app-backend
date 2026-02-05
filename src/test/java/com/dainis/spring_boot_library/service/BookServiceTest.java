@@ -245,6 +245,16 @@ class BookServiceTest {
         assertEquals(2, bookService.currentLoansCount(userEmail), "Amount of books taken should be equal to 2");
     }
 
+    @DisplayName("Should return 0 if no books are taken")
+    @Test
+    void testCurrentLoansCountWithoutBooksTaken() {
+        String userEmail = "test@example.com";
+
+        when(checkoutRepository.findBooksByUserEmail(userEmail)).thenReturn(Collections.emptyList());
+
+        assertEquals(0, bookService.currentLoansCount(userEmail), "Amount of books taken should be equal to 0");
+    }
+
     //endregion
 
     //region currentLoans tests
