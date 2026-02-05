@@ -227,6 +227,26 @@ class BookServiceTest {
     }
     //endregion
 
+    //region currentLoansCount tests
+
+    @DisplayName("Should correctly display amount of books taken")
+    @Test
+    void testCurrentLoansCount() {
+        String userEmail = "test@example.com";
+
+        Checkout checkout = new Checkout();
+        checkout.setBookId(1L);
+
+        Checkout checkout2 = new Checkout();
+        checkout2.setBookId(2L);
+
+        when(checkoutRepository.findBooksByUserEmail(userEmail)).thenReturn(List.of(checkout, checkout2));
+
+        assertEquals(2, bookService.currentLoansCount(userEmail), "Amount of books taken should be equal to 2");
+    }
+
+    //endregion
+
     //region currentLoans tests
 
     @DisplayName("Should correctly calculate days left for loaned books")
@@ -290,7 +310,7 @@ class BookServiceTest {
 
     //endregion
 
-    //region returnBook tests (TODO)
+    //region returnBook tests
 
     @DisplayName("Successfully return the book")
     @Test
