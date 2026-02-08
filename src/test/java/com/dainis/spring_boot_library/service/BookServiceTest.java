@@ -160,11 +160,17 @@ class BookServiceTest {
         book.setId(bookId);
         book.setCopiesAvailable(5);
 
+        Checkout checkoutOne = new Checkout();
+        checkoutOne.setReturnDate(LocalDate.now().plusDays(5).toString());
+
+        Checkout checkoutTwo = new Checkout();
+        checkoutTwo.setReturnDate(LocalDate.now().plusDays(3).toString());
+
         Checkout overdueCheckout = new Checkout();
         overdueCheckout.setReturnDate(LocalDate.now().minusDays(2).toString());
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        when(checkoutRepository.findBooksByUserEmail(userEmail)).thenReturn(List.of(overdueCheckout));
+        when(checkoutRepository.findBooksByUserEmail(userEmail)).thenReturn(List.of(checkoutOne, checkoutTwo, overdueCheckout));
 
         Payment payment = new Payment();
         payment.setAmount(0.00);
