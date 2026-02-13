@@ -56,4 +56,21 @@ public class MessagesServiceTest {
 
         verify(messageRepository, times(1)).save(existingMessage);
     }
+
+    @Test
+    void testPutMessageForNonExistingQuestion() {
+        String adminEmail = "admin@example.com";
+        Long messageId = 0L;
+
+        AdminQuestionRequest adminQuestionRequest = new AdminQuestionRequest();
+        adminQuestionRequest.setId(messageId);
+
+        when(messageRepository.findById(messageId)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(Exception.class, () -> messagesService.putMessage(adminQuestionRequest, adminEmail));
+
+        assertEquals("Message not found", exception.getMessage());
+
+        verify(messageRepository, never()).save(any(Message.class));
+    }
 }
