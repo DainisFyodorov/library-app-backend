@@ -39,4 +39,22 @@ public class ReviewServiceTest {
 
         verify(reviewRepository, times(1)).save(any(Review.class));
     }
+
+    @Test
+    void testPostReviewWhichAlreadyExists() {
+        String userEmail = "test@example.com";
+        Long bookId = 1L;
+
+        ReviewRequest reviewRequest = new ReviewRequest();
+        reviewRequest.setBookId(bookId);
+
+        Review review = new Review();
+
+        when(reviewRepository.findByUserEmailAndBookId(userEmail, bookId)).thenReturn(review);
+
+        Exception exception = assertThrows(Exception.class, () -> reviewService.postReview(userEmail, reviewRequest));
+        assertTrue(exception.getMessage().equals("Review already created"));
+
+        verify(reviewRepository, never()).save(any(Review.class));
+    }
 }
